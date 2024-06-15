@@ -170,7 +170,8 @@ impl Chip8 {
             },
             7 => {
                 self.registers[0xF] = if self.registers[b] > self.registers[a] { 1 } else { 0 };
-                self.registers[a] = self.registers[b] - self.registers[a];
+                self.registers[a] = self.registers[b].overflowing_sub(self.registers[a]).0;
+
             },
             0xE => {
                 self.registers[0xF] = (self.registers[a] & 0x80) >> 7;
@@ -324,6 +325,7 @@ impl Chip8 {
         self.memory[self.index_register as usize] = hundreds;
         self.memory[( self.index_register+1 ) as usize] = tens;
         self.memory[( self.index_register+2 ) as usize] = ones;
+
     }
 
     fn op_fx55(&mut self) {
@@ -337,8 +339,8 @@ impl Chip8 {
     fn op_fx65(&mut self) {
         let register_index: usize = ((self.opcode & 0x0F00) >> 8) as usize;
         
-        for i in 0..=self.registers[register_index] {
-            self.registers[i as usize] = self.memory[(self.index_register + i as u16) as usize];
+        for i in 0..=register_index {
+            self.registers[i] = self.memory[(self.index_register + i as u16) as usize];
         }
     }
     
