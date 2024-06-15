@@ -232,12 +232,12 @@ impl Chip8 {
 
             for col in 0..8_u8 {
                 let pixel: u8 = sprite & (0x80 >> col);
-                let ypos: u16 = (y as u16) + (row as u16);
-                let xpos: u16 = (x as u16) + (col as u16);
+                let ypos: u16 = ((y as u16) + (row as u16)) % VIDEO_HEIGHT;
+                let xpos: u16 = ((x as u16) + (col as u16)) % VIDEO_WIDTH;
 
                 let screen_pixel: &mut u8 = &mut self.video[( xpos + ypos * 64 ) as usize];
 
-                println!("sprite_byte: {:#04x}, pixel: {}", sprite, pixel);
+                //println!("sprite_byte: {:#04x}, pixel: {}", sprite, pixel);
                 if pixel != 0x0 {
                     if *screen_pixel == 0xFF {
                         self.registers[0xF] = 1;

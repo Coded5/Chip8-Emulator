@@ -11,18 +11,15 @@ use glutin_window::GlutinWindow as Window;
 pub struct Device {
     gl: GlGraphics,
     pub window: Window,
+    scale: u32
 }
-
-const SCALE: u32 = 16;
-const WIDTH: u32 = SCALE * 64;
-const HEIGHT: u32 = SCALE * 32;
 
 impl Device {
 
-    pub fn start() -> Device {
+    pub fn start(scale: u32) -> Device {
         let opengl = OpenGL::V3_2;
 
-        let window: Window = WindowSettings::new("CHIP-8", [WIDTH, HEIGHT])
+        let window: Window = WindowSettings::new("CHIP-8", [64 * scale, 32 * scale])
             .graphics_api(opengl)
             .resizable(false)
             .exit_on_esc(true)
@@ -32,6 +29,7 @@ impl Device {
         Device {
             gl: GlGraphics::new(opengl),
             window,
+            scale
         }
     }
 
@@ -46,7 +44,7 @@ impl Device {
             // Clear the screen.
             clear([0.0, 0.0, 0.0, 1.0], gl);
 
-            graphics::image(&texture, c.transform.scale(SCALE as f64, SCALE as f64), gl);
+            graphics::image(&texture, c.transform.scale(self.scale as f64, self.scale as f64), gl);
         });
     }
 

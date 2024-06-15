@@ -19,25 +19,41 @@ mod device;
 ///64x32 Monochrome display memory
 ///
 
-use std::{env, time::SystemTime};
+use std::{env, time::SystemTime, collections::HashMap};
 use device::Device;
 use chip8::Chip8;
 use piston::{Button, EventSettings, Events, Key, PressEvent, ReleaseEvent, RenderEvent};
 
-const CYCLE_DELAY: u128 = 1;
-
-#[allow(unreachable_code)]
 fn main() {
-    env::set_var("RUST_BACKTRACE", "1");
+    let args: Vec<String> = env::args().collect();
+    
+    let mut rom_path: String = String::new();
+    let mut config: HashMap<&str, &str> = HashMap::new();
+    
+    config.insert("--cycle-delay", "1");
+    config.insert("--scale", "16");
+
+    for (i, arg) in args.iter().skip(1).enumerate() {
+        if i == 0 {
+            rom_path.clone_from(arg);
+            continue;
+        }
+
+        let arg_split: Vec<&str> = arg.split('=').collect();
+        let key = arg_split[0];
+        let val = arg_split[1];
+        
+        config.insert(key, val);
+    }
+
+    let cycle_delay: u128 = config.get("--cycle-delay").unwrap().parse::<u128>().unwrap();
+    let scale: u32 = config.get("--scale").unwrap().parse::<u32>().unwrap();
+
+    println!("Loading rom: {}", rom_path);
     let mut chip8 = Chip8::create();
-    chip8.load_rom("./rom/Pong.ch8");
-    //chip8.temp(); 
-    //
+    chip8.load_rom(rom_path.as_str());
 
-    //return;
-
-    let mut device = Device::start();   
-
+    let mut device = Device::start(scale);   
     let mut events = Events::new(EventSettings::new());
 
     let mut last_time = SystemTime::now();
@@ -98,15 +114,14 @@ fn main() {
             }
         } 
 
-        if dt > CYCLE_DELAY {
+        if dt > cycle_delay {
             last_time = current_time;
 
             chip8.run();
+            if let Some(args) = e.render_args() {
+                device.render(&args, chip8.video);
+            }
             
-        }
-
-        if let Some(args) = e.render_args() {
-            device.render(&args, chip8.video);
         }
     }
 }
